@@ -1,0 +1,66 @@
+# Implementation specification template
+
+Copy this structure into `docs/specs/<slug>/spec.md`, then replace the
+bracketed guidance with project-specific content. Keep the progress and task
+checklist at the top and task definitions at the bottom.
+
+## Progress
+
+- **State:** Draft | Ready | Building | Blocked | Complete
+- **Active task:** [T1 or none]
+- **Resume notes:** [short handoff; include the base commit once build starts]
+- **Base commit:** Not captured
+
+## Tasks
+
+- [ ] T1 — [outcome-sized task]
+
+## Goal and context
+
+[What problem is being solved, for whom, and what relevant context was
+observed.]
+
+## Requirements
+
+### Binding requirements
+
+- [Requirement]
+
+### Implementation suggestions
+
+- [Suggestion; may change if contracts and acceptance remain satisfied.]
+
+## Non-goals
+
+- [Explicitly out of scope]
+
+## Architecture and decisions
+
+[Components, data flow, boundaries, and agreed decisions. Label unresolved
+material decisions instead of guessing.]
+
+## Contracts
+
+[User-visible behavior, interfaces, data shapes, compatibility, and error
+semantics.]
+
+## Edge cases
+
+- [Case and expected behavior]
+
+## Acceptance criteria
+
+- [Observable condition that must be true]
+
+## Verification
+
+- [Focused check and expected evidence]
+
+## Task details
+
+### T1 — [title]
+
+- **Scope:** [files or behavior owned by this task]
+- **Dependencies:** [earlier tasks or `None`]
+- **Acceptance:** [task-specific outcome]
+- **Verification:** [focused checks]

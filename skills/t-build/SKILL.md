@@ -1,0 +1,117 @@
+---
+name: t-build
+description: Use only when the user explicitly invokes t-build to implement an implementation-ready spec, coordinating scoped outcome-sized tasks, verification, review, and commits without publishing or silently advancing phases.
+---
+
+# t-build
+
+This skill is user-invoked only. Do not start it automatically after a spec or
+invoke another phase when it finishes. It is standalone and must work without
+any other skill installed. Host syntax, tools, delegation support, and model
+choices vary; use only capabilities actually available and never hardcode a
+tool name, model name, or command into the portable workflow.
+
+## Start safely
+
+1. Read the selected specification completely, the repository's applicable
+   instructions, relevant code, and current Git state. It must be
+   implementation-ready: `Ready` means material decisions are resolved;
+   `Building` means resume the recorded work; `Draft` needs specification work.
+   For `Blocked`, recheck whether the recorded blocker is now resolved and
+   continue only if it is; otherwise report it and stop. For `Complete`,
+   validate the claims and reopen invalidated work instead of duplicating it.
+2. If more than one candidate spec could apply, ask the user to choose; never
+   guess. On resume, compare the spec's claims with the current code and Git
+   history before changing anything.
+3. Capture the starting Git commit once in the spec's Progress section when the
+   build begins. Preserve that baseline and all pre-existing dirty changes for
+   review; do not reset, stash, discard, or overwrite work outside the agreed
+   scope. If Git cannot record a baseline, disclose the blocker rather than
+   fabricating one.
+
+The reader contract is stable: `Progress` contains `State`, `Active task`,
+`Resume notes`, and `Base commit`; the top `Tasks` checklist uses stable `T1`,
+`T2`, and so on; every checklist item has exactly one matching `### Tn — ...`
+section at the bottom with scope, dependencies, acceptance, and verification.
+Dependencies control ordering; task IDs do not imply parallelism.
+If a material product, contract, or safety decision is missing, surface it for
+user resolution before implementation; choose routine implementation details
+autonomously and record those choices in the task or resume notes.
+
+## Task execution
+
+Break the checklist into outcome-sized tasks, not a fixed number of agents per
+checkbox. Batch closely related small changes; use direct implementation for
+tiny work; use a fresh isolated mid-tier worker for meaningful independent
+tasks when delegation exists; reuse the original worker for its fixes; and run
+dependent work sequentially. Choose capability tiers explicitly only when the
+host supports that choice: a capable mid-tier for ordinary work, a frontier
+capability for difficult architecture, and a strong independent reviewer for
+the final review. Do not claim a selection the host did not provide.
+
+For every delegated task, provide an ephemeral, scoped brief containing the
+goal, copied relevant requirements and global constraints, contracts,
+dependencies, owned paths, acceptance, verification, and commit/report rules.
+Workers may inspect relevant code but must not spawn more workers. They should
+report needs-context or blocked rather than guess over material unknowns.
+
+The implementer must:
+
+- make changes only within the task scope and preserve unrelated user work;
+- run focused, proportional checks: logic changes need relevant tests or
+  checks, regression fixes need the original symptom covered, and UI changes
+  need the applicable build plus visual or interaction verification;
+- self-review the actual diff;
+- inspect both the staged and unstaged diff before staging; stage explicit
+  task-owned paths only, never a broad catch-all. If unrelated changes are
+  already staged, use a task-scoped commit method that preserves them, or stop
+  and report that ownership cannot be separated. Do not casually unstage a
+  user's changes;
+- create a Conventional Commit using `<type>(<optional scope>): <description>`
+  with a type such as `feat`, `fix`, `refactor`, `test`, `docs`, `chore`,
+  `build`, `ci`, `perf`, or `style`; include no AI attribution,
+  `Co-Authored-By` trailer, generated-by footer, or robot emoji; and
+- report the commit SHA, subject, files, commands and outcomes, and concerns.
+
+Workers must exclude the specification from staging unless the task explicitly
+delegates that exact progress edit. The orchestrator alone updates spec
+progress. Pending progress can be included in the next owned implementation
+commit or one final documentation commit; do not create a bookkeeping commit
+for every checkbox.
+
+## Gates and review
+
+After each task, cheaply validate the actual commit range and files against the
+task scope, acceptance evidence, and reported concerns. Do not rerun unchanged
+passing checks or reread everything by ritual. Review risky foundational work
+early when dependent work would otherwise multiply a mistake.
+
+At the end, run the broad relevant checks, verify every acceptance criterion,
+and perform one fresh independent review for non-trivial work against the
+selected specification, implementation changes, and relevant code. The reviewer should
+report concrete defects or unmet requirements, not taste. Group fixes, rerun
+affected checks, and repeat only as needed. If no independent reviewer is
+available, say so plainly, perform a separate self-review, and provide a
+qualified handoff; never claim independent review.
+
+If a mandatory check is unavailable, the work is blocked until the user
+accepts that limitation; never mark the task or overall spec complete. Clearly
+separate an unavailable mandatory check from an optional check that was not
+run.
+
+Update checkboxes only for verified outcomes. On interruption or blockage,
+write short resume notes and leave the state accurate. Mark the overall work
+`Complete` only after the final gate; distinguish unavailable mandatory checks
+from optional limitations.
+
+## Boundaries and finish
+
+Do not push, open a pull request, publish, deploy, archive, or install
+globally unless the user separately requests and authorizes that action. Do
+not initialize or replace a user's project repository without authority. Do
+not use broad staging or destructive Git commands.
+
+Finish with the verified implementation status, commits and files, checks and
+outcomes, review evidence, unresolved concerns, and accurate spec progress.
+Stop there. Any suggested follow-up (including another skill) must be an
+explicit user choice, not an automatic invocation.
