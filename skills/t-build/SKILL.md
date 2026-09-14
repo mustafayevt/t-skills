@@ -38,16 +38,28 @@ If a material product, contract, or safety decision is missing, surface it for
 user resolution before implementation; choose routine implementation details
 autonomously and record those choices in the task or resume notes.
 
+Progress transitions are explicit: before work starts, set `State: Building`
+and the current `Active task`; update that task and the notes as work advances;
+when a blocker is resolved, clear or replace the stale blocker note. If a spec
+change invalidates evidence, reopen the affected completed tasks and every
+dependent completed task whose evidence relied on it. When all acceptance
+criteria and required checks are verified, clear `Active task`, set
+`State: Complete`, and put concise final evidence and limitations in `Resume
+notes`.
+
 ## Task execution
 
 Break the checklist into outcome-sized tasks, not a fixed number of agents per
 checkbox. Batch closely related small changes; use direct implementation for
-tiny work; use a fresh isolated mid-tier worker for meaningful independent
-tasks when delegation exists; reuse the original worker for its fixes; and run
-dependent work sequentially. Choose capability tiers explicitly only when the
-host supports that choice: a capable mid-tier for ordinary work, a frontier
-capability for difficult architecture, and a strong independent reviewer for
-the final review. Do not claim a selection the host did not provide.
+tiny work. Start with sequential assignments; introduce parallel work only
+after task dependencies and isolation are clear. Use a fresh isolated mid-tier
+worker for meaningful independent tasks when capable delegation and context
+isolation are available; otherwise implement directly and state that fallback
+honestly. Reuse the original worker for its fixes and run dependent work
+sequentially. Choose capability tiers explicitly only when the host supports
+that choice: a capable mid-tier for ordinary work, a frontier capability for
+difficult architecture, and a strong independent reviewer for the final
+review. Do not claim a selection the host did not provide.
 
 For every delegated task, provide an ephemeral, scoped brief containing the
 goal, copied relevant requirements and global constraints, contracts,
@@ -71,7 +83,9 @@ The implementer must:
   with a type such as `feat`, `fix`, `refactor`, `test`, `docs`, `chore`,
   `build`, `ci`, `perf`, or `style`; include no AI attribution,
   `Co-Authored-By` trailer, generated-by footer, or robot emoji; and
-- report the commit SHA, subject, files, commands and outcomes, and concerns.
+- report `Status: done`, `Status: needs-context`, or `Status: blocked`, along
+  with the commit SHA when done, subject, files, commands and outcomes, and
+  concerns. A needs-context or blocked result must not be presented as done.
 
 Workers must exclude the specification from staging unless the task explicitly
 delegates that exact progress edit. The orchestrator alone updates spec

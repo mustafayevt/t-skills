@@ -18,6 +18,8 @@ particular host's tools, models, routing scripts, worktree policy, or runtime.
 Invoke a phase using the host's supported form, such as `/t-brainstorm`,
 `$t-brainstorm`, `t-brainstorm`, or an explicit request; the exact syntax is
 host-specific.
+Manual invocation is an instruction-level convention; whether a host enforces
+that convention is host-dependent.
 
 ## Install locally
 

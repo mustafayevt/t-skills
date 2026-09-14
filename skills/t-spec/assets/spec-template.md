@@ -8,7 +8,7 @@ checklist at the top and task definitions at the bottom.
 
 - **State:** Draft | Ready | Building | Blocked | Complete
 - **Active task:** [T1 or none]
-- **Resume notes:** [short handoff; include the base commit once build starts]
+- **Resume notes:** [short handoff and current evidence or blocker]
 - **Base commit:** Not captured
 
 ## Tasks
