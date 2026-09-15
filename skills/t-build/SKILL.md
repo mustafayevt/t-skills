@@ -57,17 +57,30 @@ notes`.
 
 ## Task execution
 
-Break the checklist into outcome-sized tasks, not a fixed number of agents per
-checkbox. Batch closely related small changes; use direct implementation for
-tiny work. Start with sequential assignments; introduce parallel work only
-after task dependencies and isolation are clear. Use a fresh isolated mid-tier
-worker for meaningful independent tasks when capable delegation and context
-isolation are available; otherwise implement directly and state that fallback
-honestly. Reuse the original worker for its fixes and run dependent work
-sequentially. Choose capability tiers explicitly only when the host supports
-that choice: a capable mid-tier for ordinary work, a frontier capability for
-difficult architecture, and a strong independent reviewer for the final
-review. Do not claim a selection the host did not provide.
+After checking the host's delegation capabilities, delegate implementation and
+focused verification to an implementation-capable isolated worker by default.
+The frontier orchestrator owns full-spec understanding, assignments, context
+questions, acceptance, and progress; the worker owns application edits, checks,
+self-review, and the task commit. Batch tiny related changes into one
+assignment so spawning is not per checkbox; do not classify an entire task as
+"tiny" to evade this default. Start sequentially, delegate a dependent task
+only after its prerequisites complete, use a fresh worker for each distinct
+assignment, and reuse that worker for fixes. There is no independent-tasks-only
+restriction when the dependency order is clear.
+
+Before each assignment, make one concise execution statement naming delegation
+or the concrete reason for a direct fallback and the known or inherited model
+selection. Direct implementation is limited to incidental progress bookkeeping,
+an explicit user request, or capable isolation being unavailable or denied
+after it was checked. Do not bypass permissions. Delegation and model selection
+are separate: if per-worker selection is unavailable, still delegate with the
+available/default model and disclose that fact; never pretend a cheaper model
+was selected. Prefer a smaller capable or mid-tier implementation model when
+selectable, and escalate to a frontier capability for difficult reasoning only
+after distinguishing missing context from insufficient capability. Keep a
+strong fresh reviewer for the final review. Do not persist worker logs or
+reports, or ask blanket repeated questions. A delegation report requires an
+actual delegation invocation.
 
 For every delegated task, provide an ephemeral, scoped brief containing the
 goal, copied relevant requirements and global constraints, contracts,

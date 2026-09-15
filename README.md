@@ -21,6 +21,14 @@ host-specific.
 Manual invocation is an instruction-level convention; whether a host enforces
 that convention is host-dependent.
 
+During `t-build`, implementation and focused verification are delegated by
+default to capable isolated workers when available. The orchestrator retains
+specification, context, acceptance, and progress ownership; workers own scoped
+edits, checks, self-review, and commits. Small related changes are batched and
+dependent work remains sequential. If isolation is unavailable or denied,
+`t-build` states the concrete direct-execution reason and the known or
+inherited model selection; delegation and model selection remain separate.
+
 ## Install locally
 
 Run the install from the target project, using the absolute path to this
@@ -33,13 +41,12 @@ npx skills add /absolute/path/to/t-skills --skill '*' -a codex -a claude-code -a
 
 To install one skill, replace `'*'` with its name, such as `t-build`. The
 target list above is illustrative: choose the adapters supported by the
-installed CLI and the host environments you use. This repository is local;
-there is no published package URL to install from yet. If it is published in
-the future, a remote command can use that published repository URL instead of
-the local path, for example (only after publication):
+installed CLI and the host environments you use. This repository is also
+published at `mustafayevt/t-skills`, so a remote install can use the published
+repository URL:
 
 ```sh
-npx skills@latest add turalmustafayev/t-skills --skill '*' -a codex -a claude-code -a opencode -a pi
+npx skills@latest add mustafayevt/t-skills --skill '*' -a codex -a claude-code -a opencode -a pi
 ```
 
 ## Shared specification format
