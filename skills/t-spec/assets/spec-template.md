@@ -1,6 +1,6 @@
 # Implementation specification template
 
-Copy this structure into `docs/specs/<slug>/spec.md`, then replace the
+Copy this structure into `docs/t-specs/<slug>/spec.md`, then replace the
 bracketed guidance with project-specific content. Keep the progress and task
 checklist at the top and task definitions at the bottom.
 

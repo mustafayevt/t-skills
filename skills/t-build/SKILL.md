@@ -13,16 +13,24 @@ tool name, model name, or command into the portable workflow.
 
 ## Start safely
 
-1. Read the selected specification completely, the repository's applicable
-   instructions, relevant code, and current Git state. It must be
+1. Before reading a selected specification completely or mutating progress or
+   code, determine the selection. An explicit path or slug supplied in the
+   t-build invocation is an override; validate that it resolves to a spec
+   under `docs/t-specs/<slug>/spec.md`. Otherwise enumerate
+   `docs/t-specs/*/spec.md`, showing each slug plus its `Progress` State and
+   Active task. If none exist, report that and stop. If multiple exist, ask the
+   user to select one; if exactly one exists, still present it and ask for
+   confirmation. Use the host's ordinary interactive question mechanism, not a
+   hardcoded UI tool, and never guess a selection.
+2. After selection, read the selected specification completely, the repository's
+   applicable instructions, relevant code, and current Git state. It must be
    implementation-ready: `Ready` means material decisions are resolved;
    `Building` means resume the recorded work; `Draft` needs specification work.
    For `Blocked`, recheck whether the recorded blocker is now resolved and
    continue only if it is; otherwise report it and stop. For `Complete`,
    validate the claims and reopen invalidated work instead of duplicating it.
-2. If more than one candidate spec could apply, ask the user to choose; never
-   guess. On resume, compare the spec's claims with the current code and Git
-   history before changing anything.
+   On resume, compare the spec's claims with current code and Git history
+   before changing anything.
 3. Capture the starting Git commit once in the spec's Progress section when the
    build begins. Preserve that baseline and all pre-existing dirty changes for
    review; do not reset, stash, discard, or overwrite work outside the agreed

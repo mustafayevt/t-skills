@@ -1,6 +1,6 @@
 ---
 name: t-spec
-description: Use only when the user explicitly invokes t-spec to write or update a complete implementation specification at a slug-specific path under docs/specs, preserving decisions, progress, and explicit unknowns.
+description: Use only when the user explicitly invokes t-spec to write or update a complete implementation specification at a slug-specific path under docs/t-specs, preserving decisions, progress, and explicit unknowns.
 ---
 
 # t-spec
@@ -27,7 +27,7 @@ the affected tasks explicitly rather than blindly resetting every checkbox.
 
 ## Required document shape
 
-Create or update `docs/specs/<slug>/spec.md` with these sections when
+Create or update `docs/t-specs/<slug>/spec.md` with these sections when
 applicable, in this order:
 
 1. `Progress` at the top: `State` (`Draft`, `Ready`, `Building`, `Blocked`,

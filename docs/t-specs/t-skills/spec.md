@@ -22,7 +22,7 @@ Provide a lightweight, manually invoked workflow for discussing a feature, writi
 - Ship `t-brainstorm`, `t-spec`, and `t-build` in standard `skills/<name>/SKILL.md` directories with name and description frontmatter.
 - Every user-facing phase requires explicit invocation. Completion may suggest another phase but must not start it.
 - Brainstorming explores the goal, existing code, options, decisions, constraints, and acceptance without implementation or spec writes. Separate suggestions from agreed decisions.
-- Spec writing produces a comprehensive standalone `docs/specs/<slug>/spec.md`. Preserve relevant agreed behavior and technical decisions without a length target. Distinguish requirements from implementation suggestions. Surface material missing decisions.
+- Spec writing produces a comprehensive standalone `docs/t-specs/<slug>/spec.md`. Preserve relevant agreed behavior and technical decisions without a length target. Distinguish requirements from implementation suggestions. Surface material missing decisions.
 - Put progress and a stable task checklist at the top of the specification; task definitions and dependencies belong in the same document. No `status.md` or separate implementation plan.
 - Build understands this format, reads the whole spec, reconciles recorded progress with Git/code, and updates task management without silently changing requirements.
 - Prefer isolated capable mid-tier workers for meaningful assignments, batch small related tasks, and use direct execution for tiny work or unavailable isolation. Fresh workers for distinct assignments, original workers for fixes, sequential execution initially.

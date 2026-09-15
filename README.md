@@ -6,7 +6,7 @@ Three small, portable Agent Skills for a deliberate brainstorm → specification
 - `t-brainstorm` clarifies intent, alternatives, constraints, feasibility,
   edge cases, and success without writing implementation artifacts.
 - `t-spec` turns the agreed decisions into a complete
-  `docs/specs/<slug>/spec.md` with progress, stable tasks, contracts,
+  `docs/t-specs/<slug>/spec.md` with progress, stable tasks, contracts,
   acceptance, and verification.
 - `t-build` implements an implementation-ready spec with scoped tasks, evidence gates,
   review, and explicit commits.
