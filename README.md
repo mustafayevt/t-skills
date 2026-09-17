@@ -19,7 +19,7 @@ works on its own, and leaves a clear handoff for the next phase.
 | --- | --- | --- |
 | [`t-brainstorm`](skills/t-brainstorm/SKILL.md) | Explores the codebase, sizes the work, asks one question at a time, compares 2–3 approaches, and presents the design section by section for approval. | A design handoff: in chat for small work, `docs/t-specs/<slug>/handoff.md` for full work. |
 | [`t-spec`](skills/t-spec/SKILL.md) | Converts the agreed design into a specification detailed enough that an implementer needs no design judgment. | `docs/t-specs/<slug>/`: `spec.md` (progress, linked task table, design) and `tasks/Tn.md` (one self-contained worker brief per task), marked `Ready` only after you approve it. |
-| [`t-build`](skills/t-build/SKILL.md) | Dispatches one implementer worker per task (parallel when independent), gates each result, runs one final independent review, and commits. | Verified implementation, accurate spec progress, and Conventional Commits. |
+| [`t-build`](skills/t-build/SKILL.md) | Dispatches one implementer worker per task in dependency order, has a fresh reviewer check each task against its task file, runs one final review of the whole diff, and commits. | Verified implementation, accurate spec progress, and Conventional Commits. |
 
 ## Why this workflow
 
@@ -40,13 +40,14 @@ separate while preserving the information needed to move between them.
 - **Controlled execution.** `t-build` preserves existing work, scopes changes,
   verifies outcomes, reviews the final result, and does not publish without
   explicit authorization.
-- **Cheap workers, one strong review.** `t-build` gives each task to a fresh
+- **Cheap workers, scoped reviews.** `t-build` gives each task to a fresh
   implementer worker that reads only its task file, on an explicitly chosen
-  small model when the host allows it. The orchestrator gates each result;
-  a single independent reviewer checks the whole diff at the end. There is
-  no reviewer per task and no fix-loop ceremony.
-- **Parallel where safe.** Tasks whose dependencies are met and whose files
-  do not overlap run in parallel when the host supports it.
+  small model when the host allows it. A fresh reviewer checks each task's
+  commit against its task file and reports `must-fix` findings and notes;
+  fixes go back to the same implementer for at most two rounds. One final
+  reviewer on the strongest model checks the whole diff against the design.
+  Reviewers compute their own diffs, so large changes never pass through
+  the orchestrator's context.
 
 ## Installation
 
@@ -165,14 +166,14 @@ Use t-build for offline-sync.
 ```
 
 `t-build` validates readiness, captures the starting Git state, and reports
-once what the host supports (workers, parallel dispatch, model selection).
-It then dispatches a fresh implementer worker per task file, sets the
-worker's model explicitly when the host allows it, runs independent tasks
-in parallel, gates each result against the task's files and evidence,
-records progress in the spec's task table, and finishes with one
-independent review of the whole diff against the design. Sequential workers commit their own
-task; when workers run in parallel the orchestrator commits each task after
-its gate. It creates scoped Conventional Commits but does not push,
+once what the host supports (workers, model selection).
+It then dispatches a fresh implementer worker per task file, one task at
+a time in dependency order, sets the worker's model explicitly when the
+host allows it, gates each result against the task's files and evidence,
+dispatches a fresh reviewer per task, records progress in the spec's task
+table, and finishes with one review of the whole diff against the design.
+A check counts only when its command and output appear in the worker's
+report. Each worker commits its own task. It creates scoped Conventional Commits but does not push,
 publish, deploy, or open a pull request unless the user separately
 authorizes that action.
 
@@ -193,8 +194,7 @@ execution.
 - `tasks/Tn.md` is one self-contained brief per task with context, copied
   constraints, dependencies, files, interfaces consumed and produced,
   ordered steps, named tests, acceptance, and verification. Dependencies
-  control ordering; tasks with met dependencies and non-overlapping files
-  may run in parallel.
+  control ordering; tasks are built one at a time.
 
 Templates live in [`skills/t-spec/assets/`](skills/t-spec/assets/) with a
 filled example under `example/`. `t-spec` owns the authoring contract,

@@ -38,7 +38,10 @@ design sections and task files are inputs.
   implements exactly what its task file says, runs the listed checks,
   commits when told to, and reports. It makes no design decisions and
   spawns no workers.
-- **Reviewer worker**: one fresh worker at the end, on the strongest
+- **Task reviewer**: a fresh worker after each task, sized to the diff,
+  checking the task's commit against its task file. Reports `must-fix`
+  findings and `notes`; does not edit code.
+- **Final reviewer**: one fresh worker at the end, on the strongest
   available model, reviewing the whole diff against the design.
 
 ## Step 1 — Select the spec
@@ -75,8 +78,7 @@ Reader contract (report the gap and stop if unmet):
   file has a row.
 - Each task file has Context, Constraints and contracts, Dependencies,
   Files, Interfaces, Steps, Tests, Acceptance, Verification.
-- `Depends on` controls order. Tasks with all dependencies `done` and
-  disjoint `Files` may run in parallel.
+- `Depends on` controls order; tasks run one at a time.
 
 Decision authority:
 
@@ -105,10 +107,10 @@ path forward is a guess.
 2. Note any pre-existing dirty or staged changes. They are the user's;
    preserve them and keep them out of task commits. Never reset, stash,
    discard, or overwrite work outside the agreed scope.
-3. Check the host once for worker dispatch, parallel dispatch, and
-   per-worker model selection. State the result in one line, for example
-   `Workers: yes, parallel: yes, model selection: yes → implementers on
-   <tier>, reviewer on <tier>.` If model selection is unavailable, say so
+3. Check the host once for worker dispatch and per-worker model
+   selection. State the result in one line, for example
+   `Workers: yes, model selection: yes → implementers on <tier>, reviewer
+   on <tier>.` If model selection is unavailable, say so
    here and do not repeat it.
 
 ## Step 4 — Execute tasks
@@ -129,15 +131,18 @@ Model choice, when the host allows it:
   tier.
 - Escalate one tier only after a worker reports `blocked` for capability
   rather than context.
+- Task reviewer → mid tier; cheapest tier for a small mechanical diff.
 - Final reviewer → most capable available.
 
 Ordering:
 
+- One task at a time, in dependency order. Never run two implementers at
+  once; they conflict on the working tree and the index.
 - A task starts only when every dependency is `done` and gated.
-- Tasks whose dependencies are met and whose `Files` do not overlap may
-  run in parallel when the host supports it.
 - One fresh worker per assignment; reuse that worker for its own fixes.
-- Set each dispatched task to `active` and list it under `Active`.
+- Note the current HEAD before dispatching; the task reviewer needs it as
+  the start of the task's commit range.
+- Set the dispatched task to `active` and name it under `Active`.
 
 ### Dispatch message
 
@@ -147,7 +152,6 @@ only:
 - interfaces from earlier tasks whose final names differ from what the
   task file says;
 - rulings that affect this task;
-- whether to commit (see **Commit ownership**);
 - the worker rules and report format below.
 
 Do not paste session history, other tasks, or `spec.md`. Tell the worker:
@@ -174,34 +178,58 @@ The worker must:
   `ci`, `perf`, `style`, and no AI attribution, `Co-Authored-By` trailer,
   generated-by footer, or robot emoji;
 - report `Status: done | needs-context | blocked`, then commit SHA and
-  subject (if it committed), files changed, commands run with outcomes,
-  and concerns.
+  subject, files changed, commands run with their output, and concerns.
+  A check counts only if its command and output are in the report; a
+  claim without output is not evidence.
 
 ### Commit ownership
 
-- Sequential worker: commits its own task.
-- Parallel workers: do **not** commit. Each reports its diff and evidence;
-  you commit each task's `Files` after its gate, one commit per task.
-- Pending `spec.md` progress edits ride in the next task commit you make
-  or one final `docs` commit; no bookkeeping commit per task.
+- The worker commits its own task.
+- Pending `spec.md` progress edits ride in one final `docs` commit, or in
+  a `docs` commit at a natural checkpoint; no bookkeeping commit per task.
 
 ### Gate
 
-After each report:
+After each implementer report:
 
-1. `done` → open the task file, confirm the diff touches only its
-   `Files`, the listed tests exist, and the verification output is in the
-   report. Do not
-   rerun passing checks by ritual. Record the commit SHA and set the row
-   to `done`.
+1. `done` → open the task file; confirm the commit touches only its
+   `Files`, every listed test exists, and each verification command's
+   output is in the report. Do not rerun passing checks by ritual. Then
+   dispatch the task review below.
 2. `needs-context` → supply it and resume the same worker.
 3. `blocked` → decide: missing context (resume with context), capability
-   (fresh worker one tier up), task too large (split; record in
+   (fresh worker one tier up), task too large (split; record under
    `Rulings`), task file wrong (rule on it, record, redispatch). Never
    retry unchanged.
-4. Concerns about correctness or scope → resolve before marking `done`.
-5. Foundational tasks that many others depend on: read the diff yourself
-   before dispatching dependents.
+4. Concerns about correctness or scope → resolve before the review.
+
+### Task review
+
+One fresh reviewer per task, after the gate passes. Give it: the task
+file path, the task's commit range (the SHA before the implementer
+started and its commit), and the instruction to compute the diff itself.
+Do not paste the diff. The reviewer reads the task file and the diff,
+may read surrounding code, and reports:
+
+- `must-fix`: a requirement, contract, or edge case in the task file not
+  met; a listed test missing or asserting nothing; a defect in the change;
+  a change outside `Files`.
+- `note`: anything else worth knowing (naming, structure, a risk in
+  unchanged code). Notes never block.
+
+Handling:
+
+1. No `must-fix` → record the commit SHA, set the row to `done`, append
+   notes under `Rulings` as `Tn note: …`, dispatch the next task.
+2. `must-fix` → resume the same implementer with the findings verbatim.
+   It fixes, reruns the covering tests, commits, and reports with output.
+   Resume the same reviewer: "recheck these findings only, and flag new
+   breakage in the fix." Repeat at most twice.
+3. Still open after two rounds → you decide: rule on the finding under
+   `Rulings` with the task file as the authority, or dispatch a fresh
+   implementer one tier up with the task file and the open findings.
+4. A finding that contradicts the task file is yours to rule on, not the
+   reviewer's or the implementer's; record the ruling.
 
 Keep `Active` and `Resume notes` current. If a ruling invalidates a `done`
 task, set it and every dependent `done` task to `reopened` with the reason.
@@ -209,20 +237,23 @@ task, set it and every dependent `done` task to `reopened` with the reason.
 ### Direct work
 
 Implement directly only when: the host has no worker capability or denied
-it (after checking); the user explicitly asked; or the change is
-progress bookkeeping in `spec.md`. Apply the worker rules to yourself. Never bypass
+it (after checking); the user explicitly asked; or the change is progress
+bookkeeping in `spec.md`. Apply the worker rules to yourself. Never bypass
 permissions.
 
 ## Step 5 — Final gate and review
 
 1. Run the spec's `Verification` and confirm every acceptance criterion.
-2. Dispatch one reviewer worker with `spec.md` and the diff from `Base
-   commit` to HEAD. It reports concrete defects and
-   unmet requirements, not taste.
-3. Group findings into one fix pass (reuse implementer workers where their
-   task is affected), rerun the affected checks, and re-review only the
-   fix diff. Repeat only if a fix introduced a new defect.
-4. If no independent reviewer is available, say so, do a separate
+2. Dispatch the final reviewer with the `spec.md` path, `Base commit`, and
+   the instruction to compute the diff to HEAD itself, plus the `Tn note`
+   entries from `Rulings` to triage. It checks the whole change against
+   the design: acceptance criteria, contracts, edge cases, and integration
+   between tasks. It reports `must-fix` and `note` as above, not taste.
+3. Group `must-fix` findings into one fix pass (resume the implementer
+   whose task is affected, or a fresh worker), rerun the affected checks,
+   and resume the reviewer to recheck only the fix. Repeat only if the fix
+   introduced a new defect.
+4. If no worker can act as an independent reviewer, say so, do a separate
    self-review of the full diff, and label the handoff as self-reviewed.
    Never claim an independent review that did not happen.
 5. A mandatory check that cannot run blocks completion until the user

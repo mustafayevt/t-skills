@@ -99,8 +99,8 @@ the task table, not in the state.
 A task is the smallest unit with its own test cycle and its own commit.
 Fold setup, configuration, and documentation into the task whose
 deliverable needs them. Split only where one task could be accepted while
-its neighbor is rejected. Order tasks so each depends only on earlier ones;
-independent tasks may run in parallel, so keep their files disjoint.
+its neighbor is rejected. Order tasks so each depends only on earlier
+ones; they are built one at a time.
 
 Every task file stands alone. Sections in this order:
 
