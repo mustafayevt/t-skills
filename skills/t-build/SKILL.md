@@ -30,7 +30,11 @@ tool name, model name, or command into the portable workflow.
    continue only if it is; otherwise report it and stop. For `Complete`,
    validate the claims and reopen invalidated work instead of duplicating it.
    On resume, compare the spec's claims with current code and Git history
-   before changing anything.
+   before changing anything. Preserve decision status from the specification:
+   agreed decisions and binding agent-chosen design choices are binding;
+   flexible implementation defaults may change when contracts and acceptance
+   remain satisfied; observed facts should be verified when they may have
+   drifted. Check any high-impact unverified assumption before dependent work.
 3. Capture the starting Git commit once in the spec's Progress section when the
    build begins. Preserve that baseline and all pre-existing dirty changes for
    review; do not reset, stash, discard, or overwrite work outside the agreed
@@ -42,9 +46,12 @@ The reader contract is stable: `Progress` contains `State`, `Active task`,
 `T2`, and so on; every checklist item has exactly one matching `### Tn — ...`
 section at the bottom with scope, dependencies, acceptance, and verification.
 Dependencies control ordering; task IDs do not imply parallelism.
-If a material product, contract, or safety decision is missing, surface it for
-user resolution before implementation; choose routine implementation details
-autonomously and record those choices in the task or resume notes.
+If an unresolved high-impact fact or choice could invalidate the design, the
+specification is not implementation-ready even if its recorded state says
+`Ready`; report the inconsistency and stop. A substantive product, contract,
+architecture, or safety choice requires a user decision or discretion the user
+explicitly delegated. Choose routine reversible implementation details
+autonomously and record material choices in the task or resume notes.
 
 Progress transitions are explicit: before work starts, set `State: Building`
 and the current `Active task`; update that task and the notes as work advances;

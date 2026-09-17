@@ -20,6 +20,13 @@ product and technical decisions; do not impose an arbitrary token limit or
 drop requirements for brevity. Write only the requested specification path
 and its containing directories.
 
+Use a supplied brainstorming handoff as an input and preserve its distinctions
+between agreed decisions, agent-chosen defaults, observed facts, unverified
+assumptions, and unresolved blockers. In a fresh conversation, do not pretend
+prior decisions are available: if a missing handoff contains information
+needed for the specification, ask the user to supply it. Continue without one
+when the current request and repository evidence are sufficient.
+
 If the user has not supplied a slug, ask for one or use a clearly stated,
 stable slug derived from the agreed feature. If the existing spec contains
 useful progress, preserve it. When a decision invalidates prior work, reopen
@@ -39,7 +46,10 @@ applicable, in this order:
 4. `Requirements`, distinguishing binding requirements from implementation
    suggestions.
 5. `Non-goals`.
-6. `Architecture and decisions`.
+6. `Architecture and decisions`, using brief labels or subheadings for the
+   applicable decision statuses. Distinguish a binding agent-chosen design
+   choice from a flexible implementation detail when material; omit empty
+   categories.
 7. `Contracts` for externally visible behavior, data, interfaces, or formats.
 8. `Edge cases`.
 9. `Acceptance criteria`.
@@ -58,9 +68,11 @@ visibly distinct from requirements.
 Before stopping, perform one consistency and completeness pass: check that
 requirements, decisions, contracts, edge cases, acceptance criteria, task
 details, and verification agree; remove placeholders and contradictions; and
-mark material unknowns as unresolved. A `Draft` or `Blocked` state is valid
-when a material decision remains unknown; do not invent an answer to make the
-document `Ready`.
+mark material unknowns as unresolved. A `Draft` or `Blocked` state is required
+when an unresolved high-impact fact or choice could invalidate the design;
+do not invent an answer to make the document `Ready`. Routine reversible
+defaults and non-blocking unknowns do not prevent readiness when contracts and
+acceptance remain complete.
 
 Stop after the pass. Report the path, state, active task, and material
 unresolved decisions. If the document is ready, suggest that the user

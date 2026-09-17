@@ -21,18 +21,38 @@ cases, and a useful definition of success.
 
 1. Read the relevant conversation, repository instructions, files, tests, and
    recent history that are in scope. Keep exploration proportional to the
-   change; do not scan unrelated projects or invent context.
+   change; do not scan unrelated projects or invent context. Investigate the
+   available code before asking technical questions it can answer.
 2. State what you understand and identify the decisions that materially affect
    the design. Separate facts observed in the context from proposals.
-3. Ask only meaningful questions, one at a time when a response is needed.
-   Choose routine defaults transparently when they do not materially change
-   the outcome. Do not use a fixed question count or an exhaustive ceremony.
-4. Offer useful alternatives when there is a real choice. For each, explain
+3. Ask about the highest-impact remaining gap, not the easiest detail. Ask one
+   main question at a time when a response is needed; include a closely coupled
+   subpart only when it is necessary to interpret the same decision. A brief
+   answer alone does not mean the user wants less depth, and continuing the
+   discussion does not require a consent question after every answer.
+4. Follow the consequences of each substantive answer. Identify what it
+   resolves and implies, check it against earlier answers and repository
+   evidence, and follow up when the result could change user-visible behavior,
+   contracts, feasibility, safety, failure handling, or acceptance. Prefer
+   those questions over routine parameters.
+5. Offer useful alternatives when there is a real choice. For each, explain
    the important trade-offs and technical feasibility, then make a
    recommendation where appropriate.
-5. Cover behavior, interfaces or data contracts, failure and edge cases,
-   constraints, non-goals, and acceptance signals at the depth the change
-   needs. Mark each item as observed, proposed, agreed, or unresolved.
+6. Walk through concrete success, long-running or interrupted, and failure
+   cases when they expose different behavior. A mechanism does not establish a
+   guarantee until those sequences support it.
+7. Cover behavior, interfaces or data contracts, failure and edge cases,
+   constraints, non-goals, and testable outcomes at the depth the change needs.
+   Choose routine reversible implementation defaults transparently. A
+   substantive product or architecture choice requires a user decision or
+   explicitly delegated discretion; when delegated, choose a sensible
+   conservative option within that scope and identify it as agent-chosen.
+
+If the user requests speed or no more questions, respect that request. Stop
+asking, fill only the gaps you are authorized to decide, and disclose the
+choices. Record an unresolved high-impact fact or choice as a blocker instead
+of inventing an answer. Unverified factual assumptions are not evidence or
+agreement.
 
 ## Boundaries
 
@@ -45,13 +65,29 @@ cases, and a useful definition of success.
 
 ## Finish
 
-Stop with a concise decision record containing:
+The user may stop the conversation at any time; stopping does not make the
+design ready. Say in normal prose whether it is ready. It is ready only when
+the material behavior, contracts, feasibility constraints, failure handling,
+and testable outcomes are supported by repository evidence, a user decision,
+an authorized agent-chosen decision, or a routine reversible default, with no
+unresolved high-impact fact or choice that could invalidate the design.
+
+Stop with a concise, standalone handoff containing only the applicable items:
 
 - the agreed goal and behavior;
-- binding constraints and non-goals;
+- agreed decisions, binding constraints, and non-goals;
+- agent-chosen defaults, distinguishing a binding design choice from a
+  flexible implementation detail when material;
+- observed facts and relevant evidence;
+- unverified assumptions;
 - the chosen approach and important rejected alternatives;
 - edge cases and acceptance signals;
-- unresolved questions that block or do not block the next phase.
+- unresolved blockers and any non-blocking unknowns.
+
+Do not infer or label a rationale as agreed when the user did not state it.
+Omit empty categories rather than forcing a fixed report shape. The handoff
+must be sufficient for a separate specification phase without rereading the
+discussion, while remaining concise.
 
 If the outcome is sufficiently clear, suggest that the user explicitly invoke
 `t-spec` next. A suggestion is not an invocation: stop and wait for the user.

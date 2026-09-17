@@ -36,8 +36,12 @@ observed.]
 
 ## Architecture and decisions
 
-[Components, data flow, boundaries, and agreed decisions. Label unresolved
-material decisions instead of guessing.]
+[Components, data flow, boundaries, and decisions. Use brief labels or
+subheadings only for applicable categories: agreed decisions, agent-chosen
+defaults, observed facts, unverified assumptions, and unresolved blockers.
+When material, identify an agent-chosen design choice as binding or an
+implementation detail as flexible. Do not infer agreement or guess over an
+unverified high-impact fact.]
 
 ## Contracts
 
