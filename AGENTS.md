@@ -13,8 +13,8 @@ The three phases remain manually invoked and must not chain automatically:
    may write only `docs/t-specs/<slug>/handoff.md`.
 2. `t-spec` writes or updates `docs/t-specs/<slug>/` (`spec.md` and
    `tasks/Tn.md`) and marks it `Ready` only on the user's approval.
-3. `t-build` executes a selected ready specification and does not publish
-   without explicit authorization.
+3. `t-build` executes a selected ready specification on a branch and does
+   not merge or publish without explicit authorization.
 
 ## README maintenance
 

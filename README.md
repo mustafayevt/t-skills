@@ -37,9 +37,9 @@ separate while preserving the information needed to move between them.
   without requiring a specific model, orchestration runtime, or tool API.
 - **Independent installation.** Every skill is self-contained and can be
   installed or used separately.
-- **Controlled execution.** `t-build` preserves existing work, scopes changes,
-  verifies outcomes, reviews the final result, and does not publish without
-  explicit authorization.
+- **Controlled execution.** `t-build` works on a branch, preserves existing
+  work, scopes changes, verifies outcomes, reviews the final result, and
+  does not merge or publish without explicit authorization.
 - **Cheap workers, scoped reviews.** `t-build` gives each task to a fresh
   implementer worker that reads only its task file, on an explicitly chosen
   small model when the host allows it. A fresh reviewer checks each task's
@@ -165,17 +165,20 @@ Invoke `t-build` and identify the specification to execute:
 Use t-build for offline-sync.
 ```
 
-`t-build` validates readiness, captures the starting Git state, and reports
-once what the host supports (workers, model selection).
+`t-build` validates readiness, moves to a `t/<slug>` branch when you are on
+the default branch (or stays on your current feature branch), captures the
+starting Git state, and reports once what the host supports (workers, model
+selection).
 It then dispatches a fresh implementer worker per task file, one task at
 a time in dependency order, sets the worker's model explicitly when the
 host allows it, gates each result against the task's files and evidence,
 dispatches a fresh reviewer per task, records progress in the spec's task
 table, and finishes with one review of the whole diff against the design.
 A check counts only when its command and output appear in the worker's
-report. Each worker commits its own task. It creates scoped Conventional Commits but does not push,
-publish, deploy, or open a pull request unless the user separately
-authorizes that action.
+report. Each worker commits its own task on the build branch. It creates
+scoped Conventional Commits but does not merge, push, publish, deploy, or
+open a pull request; at the end it offers merge, pull request, or
+leave-as-is as your choice.
 
 ## Specification contract
 
