@@ -101,13 +101,19 @@ path forward is a guess.
 
 ## Step 3 — Start the build
 
-1. Record the current commit as `Base commit` once, the first time the
+1. Work on a branch, never directly on the default branch. On a fresh
+   build: if the current branch is the default branch, create and switch
+   to `t/<slug>` and say so; if the user is already on another branch,
+   use it. On resume, stay on the branch recorded in `Resume notes`. If
+   `t/<slug>` exists but is not checked out, ask before switching. Record
+   the branch name in `Resume notes`.
+2. Record the current commit as `Base commit` once, the first time the
    build starts. If Git cannot provide one, report the blocker; never
    fabricate it.
-2. Note any pre-existing dirty or staged changes. They are the user's;
+3. Note any pre-existing dirty or staged changes. They are the user's;
    preserve them and keep them out of task commits. Never reset, stash,
    discard, or overwrite work outside the agreed scope.
-3. Check the host once for worker dispatch and per-worker model
+4. Check the host once for worker dispatch and per-worker model
    selection. State the result in one line, for example
    `Workers: yes, model selection: yes → implementers on <tier>, reviewer
    on <tier>.` If model selection is unavailable, say so
@@ -267,8 +273,9 @@ row `blocked` or `active`, and write what happened in `Resume notes`.
 
 ## Boundaries
 
-- Do not push, open a pull request, publish, deploy, archive, or install
-  globally unless the user separately authorizes it.
+- Do not merge the build branch, push, open a pull request, publish,
+  deploy, archive, or install globally unless the user separately
+  authorizes it.
 - Do not initialize or replace a repository without authority.
 - Do not use broad staging or destructive Git commands.
 - Do not edit the design sections of `spec.md` or any task file during
@@ -278,6 +285,8 @@ row `blocked` or `active`, and write what happened in `Resume notes`.
 
 ## Finish
 
-Report: state, commits and files, checks run with outcomes, review evidence
-(independent or self), unresolved concerns, and the final task table.
-Stop. Any follow-up, including another skill, is the user's call.
+Report: state, branch, commits and files, checks run with outcomes,
+review evidence (independent or self), unresolved concerns, and the final
+task table. Offer the next step as a choice for the user: merge locally,
+push and open a pull request, or leave the branch as is. Stop. Any
+follow-up, including another skill, is the user's call.
