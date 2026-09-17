@@ -1,159 +1,252 @@
 ---
 name: t-build
-description: Use only when the user explicitly invokes t-build to implement an implementation-ready spec, coordinating scoped outcome-sized tasks, verification, review, and commits without publishing or silently advancing phases.
+description: Use only when the user explicitly invokes t-build to implement a ready specification under docs/t-specs/<slug>/; dispatches one implementer worker per task file, verifies each outcome, runs one final independent review, and commits without publishing or advancing phases.
 ---
 
 # t-build
 
-This skill is user-invoked only. Do not start it automatically after a spec or
-invoke another phase when it finishes. It is standalone and must work without
-any other skill installed. Host syntax, tools, delegation support, and model
-choices vary; use only capabilities actually available and never hardcode a
-tool name, model name, or command into the portable workflow.
+User-invoked only. Do not start it after a spec is written, and do not invoke
+another phase when it finishes. Standalone: works without any other skill
+installed. Host syntax, tools, delegation, and model names vary; use what is
+actually available and never hardcode a tool, model, or command.
 
-## Start safely
+## Spec layout
 
-1. Before reading a selected specification completely or mutating progress or
-   code, determine the selection. An explicit path or slug supplied in the
-   t-build invocation is an override; validate that it resolves to a spec
-   under `docs/t-specs/<slug>/spec.md`. Otherwise enumerate
-   `docs/t-specs/*/spec.md`, showing each slug plus its `Progress` State and
-   Active task. If none exist, report that and stop. If multiple exist, ask the
-   user to select one; if exactly one exists, still present it and ask for
-   confirmation. Use the host's ordinary interactive question mechanism, not a
-   hardcoded UI tool, and never guess a selection.
-2. After selection, read the selected specification completely, the repository's
-   applicable instructions, relevant code, and current Git state. It must be
-   implementation-ready: `Ready` means material decisions are resolved;
-   `Building` means resume the recorded work; `Draft` needs specification work.
-   For `Blocked`, recheck whether the recorded blocker is now resolved and
-   continue only if it is; otherwise report it and stop. For `Complete`,
-   validate the claims and reopen invalidated work instead of duplicating it.
-   On resume, compare the spec's claims with current code and Git history
-   before changing anything. Preserve decision status from the specification:
-   agreed decisions and binding agent-chosen design choices are binding;
-   flexible implementation defaults may change when contracts and acceptance
-   remain satisfied; observed facts should be verified when they may have
-   drifted. Check any high-impact unverified assumption before dependent work.
-3. Capture the starting Git commit once in the spec's Progress section when the
-   build begins. Preserve that baseline and all pre-existing dirty changes for
-   review; do not reset, stash, discard, or overwrite work outside the agreed
-   scope. If Git cannot record a baseline, disclose the blocker rather than
-   fabricating one.
+```text
+docs/t-specs/<slug>/
+├── spec.md      Progress, Tasks table (linked to task files), Rulings,
+│                then the design: requirements, decisions, contracts,
+│                edge cases, acceptance criteria, verification
+└── tasks/Tn.md  one self-contained worker brief per task
+```
 
-The reader contract is stable: `Progress` contains `State`, `Active task`,
-`Resume notes`, and `Base commit`; the top `Tasks` checklist uses stable `T1`,
-`T2`, and so on; every checklist item has exactly one matching `### Tn — ...`
-section at the bottom with scope, dependencies, acceptance, and verification.
-Dependencies control ordering; task IDs do not imply parallelism.
-If an unresolved high-impact fact or choice could invalidate the design, the
-specification is not implementation-ready even if its recorded state says
-`Ready`; report the inconsistency and stop. A substantive product, contract,
-architecture, or safety choice requires a user decision or discretion the user
-explicitly delegated. Choose routine reversible implementation details
-autonomously and record material choices in the task or resume notes.
+Workers read only their task file. You read `spec.md` in full; from task
+files read only `Context`, `Dependencies`, `Files`, and `Interfaces` for
+scheduling and conflict checks, and open a task file in full only when
+gating it or handling a `blocked` report. `Steps` and code are worker
+material; keeping them out of your context is the point of the split.
+The build edits only `Progress`, `Tasks`, and `Rulings` in `spec.md`; the
+design sections and task files are inputs.
 
-Progress transitions are explicit: before work starts, set `State: Building`
-and the current `Active task`; update that task and the notes as work advances;
-when a blocker is resolved, clear or replace the stale blocker note. If a spec
-change invalidates evidence, reopen the affected completed tasks and every
-dependent completed task whose evidence relied on it. When all acceptance
-criteria and required checks are verified, clear `Active task`, set
-`State: Complete`, and put concise final evidence and limitations in `Resume
-notes`.
+## Roles
 
-## Task execution
+- **Orchestrator** (you): selects the spec, understands the design,
+  dispatches workers, gates each result, keeps `Progress` and `Tasks`
+  accurate, runs the final review. You do not write application code except where
+  **Direct work** allows.
+- **Implementer worker**: a fresh isolated worker per assignment. It
+  implements exactly what its task file says, runs the listed checks,
+  commits when told to, and reports. It makes no design decisions and
+  spawns no workers.
+- **Reviewer worker**: one fresh worker at the end, on the strongest
+  available model, reviewing the whole diff against the design.
 
-After checking the host's delegation capabilities, delegate implementation and
-focused verification to an implementation-capable isolated worker by default.
-The frontier orchestrator owns full-spec understanding, assignments, context
-questions, acceptance, and progress; the worker owns application edits, checks,
-self-review, and the task commit. Batch tiny related changes into one
-assignment so spawning is not per checkbox; do not classify an entire task as
-"tiny" to evade this default. Start sequentially, delegate a dependent task
-only after its prerequisites complete, use a fresh worker for each distinct
-assignment, and reuse that worker for fixes. There is no independent-tasks-only
-restriction when the dependency order is clear.
+## Step 1 — Select the spec
 
-Before each assignment, make one concise execution statement naming delegation
-or the concrete reason for a direct fallback and the known or inherited model
-selection. Direct implementation is limited to incidental progress bookkeeping,
-an explicit user request, or capable isolation being unavailable or denied
-after it was checked. Do not bypass permissions. Delegation and model selection
-are separate: if per-worker selection is unavailable, still delegate with the
-available/default model and disclose that fact; never pretend a cheaper model
-was selected. Prefer a smaller capable or mid-tier implementation model when
-selectable, and escalate to a frontier capability for difficult reasoning only
-after distinguishing missing context from insufficient capability. Keep a
-strong fresh reviewer for the final review. Do not persist worker logs or
-reports, or ask blanket repeated questions. A delegation report requires an
-actual delegation invocation.
+1. If the invocation names a slug or path, resolve it to
+   `docs/t-specs/<slug>/spec.md` and validate that it exists.
+2. Otherwise list every `docs/t-specs/*/spec.md` with slug, `State`, and
+   `Active`. None → report and stop. One → present it and ask to confirm.
+   Several → ask the user to pick. Use the host's normal question
+   mechanism; never guess.
+3. Read `spec.md` in full, the scheduling headers of every `tasks/Tn.md`, repository instructions, relevant code, and current Git
+   state. Do not mutate anything yet.
 
-For every delegated task, provide an ephemeral, scoped brief containing the
-goal, copied relevant requirements and global constraints, contracts,
-dependencies, owned paths, acceptance, verification, and commit/report rules.
-Workers may inspect relevant code but must not spawn more workers. They should
-report needs-context or blocked rather than guess over material unknowns.
+## Step 2 — Check readiness
 
-The implementer must:
+State handling:
 
-- make changes only within the task scope and preserve unrelated user work;
-- run focused, proportional checks: logic changes need relevant tests or
-  checks, regression fixes need the original symptom covered, and UI changes
-  need the applicable build plus visual or interaction verification;
-- self-review the actual diff;
-- inspect both the staged and unstaged diff before staging; stage explicit
-  task-owned paths only, never a broad catch-all. If unrelated changes are
-  already staged, use a task-scoped commit method that preserves them, or stop
-  and report that ownership cannot be separated. Do not casually unstage a
-  user's changes;
-- create a Conventional Commit using `<type>(<optional scope>): <description>`
-  with a type such as `feat`, `fix`, `refactor`, `test`, `docs`, `chore`,
-  `build`, `ci`, `perf`, or `style`; include no AI attribution,
-  `Co-Authored-By` trailer, generated-by footer, or robot emoji; and
-- report `Status: done`, `Status: needs-context`, or `Status: blocked`, along
-  with the commit SHA when done, subject, files, commands and outcomes, and
-  concerns. A needs-context or blocked result must not be presented as done.
+- `Draft` → not approved by the user. Report that and stop; never mark it
+  `Ready` yourself.
+- `Ready` with `Base commit: Not captured` → fresh build.
+- `Ready` with a base commit → resume. Compare the task table with code
+  and Git history before changing anything; trust commits over notes. For
+  any task row `blocked`, recheck the recorded blocker in resume notes;
+  resolved → continue, otherwise report and stop.
+- `Complete` → validate the claims; reopen invalidated work, do not repeat
+  completed work.
 
-Workers must exclude the specification from staging unless the task explicitly
-delegates that exact progress edit. The orchestrator alone updates spec
-progress. Pending progress can be included in the next owned implementation
-commit or one final documentation commit; do not create a bookkeeping commit
-for every checkbox.
+Reader contract (report the gap and stop if unmet):
 
-## Gates and review
+- `Progress` has `State`, `Base commit`, `Active`, `Resume notes`; a
+  `Rulings` section exists; the `Tasks` table has `ID`, `Title`,
+  `Depends on`, `Status`, `Commit`.
+- Every table row links to exactly one `tasks/<ID>.md`, and every task
+  file has a row.
+- Each task file has Context, Constraints and contracts, Dependencies,
+  Files, Interfaces, Steps, Tests, Acceptance, Verification.
+- `Depends on` controls order. Tasks with all dependencies `done` and
+  disjoint `Files` may run in parallel.
 
-After each task, cheaply validate the actual commit range and files against the
-task scope, acceptance evidence, and reported concerns. Do not rerun unchanged
-passing checks or reread everything by ritual. Review risky foundational work
-early when dependent work would otherwise multiply a mistake.
+Decision authority:
 
-At the end, run the broad relevant checks, verify every acceptance criterion,
-and perform one fresh independent review for non-trivial work against the
-selected specification, implementation changes, and relevant code. The reviewer should
-report concrete defects or unmet requirements, not taste. Group fixes, rerun
-affected checks, and repeat only as needed. If no independent reviewer is
-available, say so plainly, perform a separate self-review, and provide a
-qualified handoff; never claim independent review.
+- Agreed decisions and binding agent-chosen choices in the design are
+  binding.
+- Flexible implementation defaults may change when contracts and
+  acceptance still hold; record the change under `Rulings`.
+- Verify observed facts that may have drifted; check high-impact
+  unverified assumptions before dependent work.
+- An unresolved high-impact fact or choice makes the spec not ready even
+  if it says `Ready`. Report the inconsistency and stop.
+- Substantive product, contract, architecture, or safety choices need the
+  user. Routine reversible details are yours; record material ones.
 
-If a mandatory check is unavailable, the work is blocked until the user
-accepts that limitation; never mark the task or overall spec complete. Clearly
-separate an unavailable mandatory check from an optional check that was not
-run.
+Before dispatching, scan the task headers once for conflicts: two tasks
+that modify the same file, an interface consumed that no task produces, a
+dependency on a task that does not exist. Rule on each with the design as
+the authority, record it under `Rulings`, and continue. Stop only if every
+path forward is a guess.
 
-Update checkboxes only for verified outcomes. On interruption or blockage,
-write short resume notes and leave the state accurate. Mark the overall work
-`Complete` only after the final gate; distinguish unavailable mandatory checks
-from optional limitations.
+## Step 3 — Start the build
 
-## Boundaries and finish
+1. Record the current commit as `Base commit` once, the first time the
+   build starts. If Git cannot provide one, report the blocker; never
+   fabricate it.
+2. Note any pre-existing dirty or staged changes. They are the user's;
+   preserve them and keep them out of task commits. Never reset, stash,
+   discard, or overwrite work outside the agreed scope.
+3. Check the host once for worker dispatch, parallel dispatch, and
+   per-worker model selection. State the result in one line, for example
+   `Workers: yes, parallel: yes, model selection: yes → implementers on
+   <tier>, reviewer on <tier>.` If model selection is unavailable, say so
+   here and do not repeat it.
 
-Do not push, open a pull request, publish, deploy, archive, or install
-globally unless the user separately requests and authorizes that action. Do
-not initialize or replace a user's project repository without authority. Do
-not use broad staging or destructive Git commands.
+## Step 4 — Execute tasks
 
-Finish with the verified implementation status, commits and files, checks and
-outcomes, review evidence, unresolved concerns, and accurate spec progress.
-Stop there. Any suggested follow-up (including another skill) must be an
-explicit user choice, not an automatic invocation.
+### Dispatch
+
+Delegate every task to an implementer worker by default. Do not evade this
+by calling a task "tiny". Several small, same-shaped tasks may share one
+worker; list all their task files in that dispatch.
+
+Model choice, when the host allows it:
+
+- **Always set the worker's model explicitly.** An omitted model inherits
+  the orchestrator's model, usually the most capable and most expensive.
+  Omitting it is a defect.
+- Task files with complete steps and code → cheapest capable tier.
+- Multi-file integration, or steps that describe without showing → mid
+  tier.
+- Escalate one tier only after a worker reports `blocked` for capability
+  rather than context.
+- Final reviewer → most capable available.
+
+Ordering:
+
+- A task starts only when every dependency is `done` and gated.
+- Tasks whose dependencies are met and whose `Files` do not overlap may
+  run in parallel when the host supports it.
+- One fresh worker per assignment; reuse that worker for its own fixes.
+- Set each dispatched task to `active` and list it under `Active`.
+
+### Dispatch message
+
+The worker gets its task file path and nothing else from the spec. Add
+only:
+
+- interfaces from earlier tasks whose final names differ from what the
+  task file says;
+- rulings that affect this task;
+- whether to commit (see **Commit ownership**);
+- the worker rules and report format below.
+
+Do not paste session history, other tasks, or `spec.md`. Tell the worker:
+read the task file first; implement exactly what it says; do not redesign;
+if it is wrong or incomplete, report `needs-context` or `blocked` instead of
+guessing; do not spawn workers; do not touch `docs/t-specs/`.
+
+### Worker rules
+
+The worker must:
+
+- change only the paths under its task's `Files` and leave unrelated work
+  untouched;
+- follow `Steps` in order and write every test listed under `Tests`;
+- run the focused test while iterating and the task's `Verification`
+  commands once before finishing;
+- read its own diff once: complete against the task file, no leftover
+  debug output, names match `Interfaces`;
+- when committing: inspect staged and unstaged changes, stage only its
+  `Files` by name, never a catch-all; if unrelated changes are already
+  staged, use a path-scoped commit method or report `blocked`;
+- write a Conventional Commit `<type>(<scope>): <description>` with a type
+  such as `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`,
+  `ci`, `perf`, `style`, and no AI attribution, `Co-Authored-By` trailer,
+  generated-by footer, or robot emoji;
+- report `Status: done | needs-context | blocked`, then commit SHA and
+  subject (if it committed), files changed, commands run with outcomes,
+  and concerns.
+
+### Commit ownership
+
+- Sequential worker: commits its own task.
+- Parallel workers: do **not** commit. Each reports its diff and evidence;
+  you commit each task's `Files` after its gate, one commit per task.
+- Pending `spec.md` progress edits ride in the next task commit you make
+  or one final `docs` commit; no bookkeeping commit per task.
+
+### Gate
+
+After each report:
+
+1. `done` → open the task file, confirm the diff touches only its
+   `Files`, the listed tests exist, and the verification output is in the
+   report. Do not
+   rerun passing checks by ritual. Record the commit SHA and set the row
+   to `done`.
+2. `needs-context` → supply it and resume the same worker.
+3. `blocked` → decide: missing context (resume with context), capability
+   (fresh worker one tier up), task too large (split; record in
+   `Rulings`), task file wrong (rule on it, record, redispatch). Never
+   retry unchanged.
+4. Concerns about correctness or scope → resolve before marking `done`.
+5. Foundational tasks that many others depend on: read the diff yourself
+   before dispatching dependents.
+
+Keep `Active` and `Resume notes` current. If a ruling invalidates a `done`
+task, set it and every dependent `done` task to `reopened` with the reason.
+
+### Direct work
+
+Implement directly only when: the host has no worker capability or denied
+it (after checking); the user explicitly asked; or the change is
+progress bookkeeping in `spec.md`. Apply the worker rules to yourself. Never bypass
+permissions.
+
+## Step 5 — Final gate and review
+
+1. Run the spec's `Verification` and confirm every acceptance criterion.
+2. Dispatch one reviewer worker with `spec.md` and the diff from `Base
+   commit` to HEAD. It reports concrete defects and
+   unmet requirements, not taste.
+3. Group findings into one fix pass (reuse implementer workers where their
+   task is affected), rerun the affected checks, and re-review only the
+   fix diff. Repeat only if a fix introduced a new defect.
+4. If no independent reviewer is available, say so, do a separate
+   self-review of the full diff, and label the handoff as self-reviewed.
+   Never claim an independent review that did not happen.
+5. A mandatory check that cannot run blocks completion until the user
+   accepts the limitation. Keep unavailable mandatory checks separate from
+   optional checks you chose not to run.
+
+When everything passes: set `Active: None`, `State: Complete`, put final
+evidence and known limitations in `Resume notes`, and commit `spec.md`.
+On interruption or a blocker, leave `State: Ready`, mark the affected task
+row `blocked` or `active`, and write what happened in `Resume notes`.
+
+## Boundaries
+
+- Do not push, open a pull request, publish, deploy, archive, or install
+  globally unless the user separately authorizes it.
+- Do not initialize or replace a repository without authority.
+- Do not use broad staging or destructive Git commands.
+- Do not edit the design sections of `spec.md` or any task file during
+  the build; a needed change is a ruling or a request to the user.
+- Do not persist worker reports as files unless the host's dispatch
+  mechanism requires it; then keep them out of commits.
+
+## Finish
+
+Report: state, commits and files, checks run with outcomes, review evidence
+(independent or self), unresolved concerns, and the final task table.
+Stop. Any follow-up, including another skill, is the user's call.

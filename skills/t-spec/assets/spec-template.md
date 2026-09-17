@@ -1,30 +1,36 @@
-# Implementation specification template
+# [Feature name]
 
-Copy this structure into `docs/t-specs/<slug>/spec.md`, then replace the
-bracketed guidance with project-specific content. Keep the progress and task
-checklist at the top and task definitions at the bottom.
+Template for `docs/t-specs/<slug>/spec.md`. Replace the bracketed guidance;
+omit a design section that has no content. See `example/` for a filled-in
+set.
 
 ## Progress
 
-- **State:** Draft | Ready | Building | Blocked | Complete
-- **Active task:** [T1 or none]
-- **Resume notes:** [short handoff and current evidence or blocker]
+- **State:** Draft | Ready | Complete
 - **Base commit:** Not captured
+- **Active:** None
+- **Resume notes:** [short: current evidence, next step, or blocker]
 
 ## Tasks
 
-- [ ] T1 — [outcome-sized task]
+| ID | Title | Depends on | Status | Commit |
+|----|-------|------------|--------|--------|
+| [T1](tasks/T1.md) | [title] | — | pending | |
+| [T2](tasks/T2.md) | [title] | T1 | pending | |
+
+## Rulings
+
+None yet.
 
 ## Goal and context
 
-[What problem is being solved, for whom, and what relevant context was
-observed.]
+[What problem is being solved, for whom, and what was observed in the code.]
 
 ## Requirements
 
 ### Binding requirements
 
-- [Requirement]
+- [Requirement, with exact values where they matter]
 
 ### Implementation suggestions
 
@@ -36,35 +42,24 @@ observed.]
 
 ## Architecture and decisions
 
-[Components, data flow, boundaries, and decisions. Use brief labels or
-subheadings only for applicable categories: agreed decisions, agent-chosen
-defaults, observed facts, unverified assumptions, and unresolved blockers.
-When material, identify an agent-chosen design choice as binding or an
-implementation detail as flexible. Do not infer agreement or guess over an
-unverified high-impact fact.]
+[Components, data flow, boundaries. Use brief labels only for applicable
+categories: agreed decisions, agent-chosen defaults (binding or flexible),
+observed facts with file references, unverified assumptions, unresolved
+blockers.]
 
 ## Contracts
 
-[User-visible behavior, interfaces, data shapes, compatibility, and error
+[User-visible behavior, interfaces, data shapes, compatibility, error
 semantics.]
 
 ## Edge cases
 
-- [Case and expected behavior]
+- [Case and expected behavior; each maps to a named test in a task]
 
 ## Acceptance criteria
 
-- [Observable condition that must be true]
+- [Observable condition that must be true when the feature is complete]
 
 ## Verification
 
-- [Focused check and expected evidence]
-
-## Task details
-
-### T1 — [title]
-
-- **Scope:** [files or behavior owned by this task]
-- **Dependencies:** [earlier tasks or `None`]
-- **Acceptance:** [task-specific outcome]
-- **Verification:** [focused checks]
+- [Broad check run at the end of the build and the expected evidence]

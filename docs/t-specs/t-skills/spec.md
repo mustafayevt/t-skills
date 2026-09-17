@@ -1,11 +1,14 @@
 # T-Skills v1
 
+> Historical record of the initial package build. The current behavior of
+> each skill is defined by `skills/*/SKILL.md`, which has since been revised.
+
 ## Progress
 
-- State: Complete
-- Active task: None
-- Resume notes: Package committed in `ac42e3c` and review fixes in `b2c40cd`; final docs handoff records cached CLI installs, validator-equivalent checks, and scoped independent review. No unresolved material concerns.
-- Base commit: None — new repository with no initial commit at build start.
+- **State:** Complete
+- **Active task:** None
+- **Resume notes:** Package committed in `65ed52a` and review fixes in `4423142`; final docs handoff records cached CLI installs, validator-equivalent checks, and scoped independent review. No unresolved material concerns.
+- **Base commit:** Not captured — new repository with no initial commit at build start.
 
 ## Tasks
 
@@ -76,8 +79,8 @@ Worker results contain status, commit SHA/subject, changed files, verification c
 
 - `quick_validate.py` was attempted for each skill but could not import PyYAML in this environment. Its frontmatter constraints were checked with an equivalent dependency-free parser plus Ruby YAML parsing; all three skills passed names, descriptions, allowed keys, and TODO/placeholder checks.
 - The cached `skills` CLI 1.5.19 was used in disposable projects: all three skills were installed for Codex, Claude Code, OpenCode, and Pi, and `t-spec` was installed alone in a separate project. Installed templates were compared with their sources.
-- The package was independently reviewed. Five findings were grouped into `b2c40cd` and the reviewer confirmed that all five were resolved, with exact three-file scope and clean commit metadata.
-- The final repository contains Conventional Commits `ac42e3c`, `b2c40cd`, and this documentation commit, with no attribution trailers; the final working tree is clean.
+- The package was independently reviewed. Five findings were grouped into `4423142` and the reviewer confirmed that all five were resolved, with exact three-file scope and clean commit metadata.
+- The final repository contains Conventional Commits `65ed52a`, `4423142`, and this documentation commit, with no attribution trailers; the final working tree is clean.
 - No real cross-harness model or cost benchmark was run, and no universal host enforcement of manual invocation is claimed. The missing PyYAML dependency is the only unavailable validator check.
 
 ## Task details

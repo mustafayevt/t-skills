@@ -17,9 +17,9 @@ works on its own, and leaves a clear handoff for the next phase.
 
 | Skill | Purpose | Output |
 | --- | --- | --- |
-| [`t-brainstorm`](skills/t-brainstorm/SKILL.md) | Investigates the repository, clarifies intent, explores meaningful alternatives, and resolves product and architecture decisions. | A concise, standalone decision handoff. |
-| [`t-spec`](skills/t-spec/SKILL.md) | Converts agreed decisions and repository evidence into a complete implementation specification. | `docs/t-specs/<slug>/spec.md` with stable tasks, contracts, acceptance criteria, and verification. |
-| [`t-build`](skills/t-build/SKILL.md) | Executes an implementation-ready specification with scoped work, evidence gates, review, and Conventional Commits. | Verified implementation, accurate spec progress, and task-owned commits. |
+| [`t-brainstorm`](skills/t-brainstorm/SKILL.md) | Explores the codebase, sizes the work, asks one question at a time, compares 2–3 approaches, and presents the design section by section for approval. | A design handoff: in chat for small work, `docs/t-specs/<slug>/handoff.md` for full work. |
+| [`t-spec`](skills/t-spec/SKILL.md) | Converts the agreed design into a specification detailed enough that an implementer needs no design judgment. | `docs/t-specs/<slug>/`: `spec.md` (progress, linked task table, design) and `tasks/Tn.md` (one self-contained worker brief per task), marked `Ready` only after you approve it. |
+| [`t-build`](skills/t-build/SKILL.md) | Dispatches one implementer worker per task (parallel when independent), gates each result, runs one final independent review, and commits. | Verified implementation, accurate spec progress, and Conventional Commits. |
 
 ## Why this workflow
 
@@ -28,8 +28,11 @@ not collapse into one opaque step. `t-skills` keeps those responsibilities
 separate while preserving the information needed to move between them.
 
 - **Deliberate phase boundaries.** No skill silently starts another phase.
-- **Durable shared state.** The specification records progress, decisions,
-  contracts, tasks, acceptance criteria, and verification evidence.
+- **Durable shared state.** `spec.md` carries progress and the design;
+  each task is its own file that only one worker reads. The build updates
+  progress but never edits the design.
+- **You approve the spec.** `t-spec` stops in `Draft`; it becomes `Ready`
+  only when you say so.
 - **Portable behavior.** The skills describe outcomes and responsibilities
   without requiring a specific model, orchestration runtime, or tool API.
 - **Independent installation.** Every skill is self-contained and can be
@@ -37,9 +40,13 @@ separate while preserving the information needed to move between them.
 - **Controlled execution.** `t-build` preserves existing work, scopes changes,
   verifies outcomes, reviews the final result, and does not publish without
   explicit authorization.
-- **Delegation with ownership.** When capable isolated workers are available,
-  `t-build` delegates implementation while the orchestrator retains full-spec,
-  acceptance, and progress ownership.
+- **Cheap workers, one strong review.** `t-build` gives each task to a fresh
+  implementer worker that reads only its task file, on an explicitly chosen
+  small model when the host allows it. The orchestrator gates each result;
+  a single independent reviewer checks the whole diff at the end. There is
+  no reviewer per task and no fix-loop ceremony.
+- **Parallel where safe.** Tasks whose dependencies are met and whose files
+  do not overlap run in parallel when the host supports it.
 
 ## Installation
 
@@ -107,53 +114,92 @@ Invoke `t-brainstorm` with the outcome you want:
 Use t-brainstorm to design offline synchronization for this application.
 ```
 
-The skill inspects relevant context before asking questions, follows the
-consequences of important decisions, and finishes with a standalone handoff.
-It does not edit application files or create a specification.
+The skill reads the relevant code before asking anything the code can
+answer, states whether the work is small, full, or too big for one spec,
+asks one question per message, proposes 2–3 approaches before recommending
+one, and presents the design in sections for approval. It ends with a
+handoff: in chat for small work, or written to
+`docs/t-specs/<slug>/handoff.md` for full work. It does not edit application
+files or create a specification.
 
 ### 2. Write the specification
 
-Invoke `t-spec` with the brainstorming handoff when it is not already present
-in the conversation:
+Invoke `t-spec` with the slug. It reads `docs/t-specs/<slug>/handoff.md`
+when present, or a handoff supplied in the conversation:
 
 ```text
-Use t-spec with this handoff to create the offline-sync specification.
+Use t-spec to create the offline-sync specification.
 ```
 
-The result is stored at `docs/t-specs/<slug>/spec.md`. A ready specification
-contains stable task identifiers, binding requirements, architecture and
-decision context, contracts, edge cases, acceptance criteria, verification,
-and task-level execution details.
+The result is a directory:
+
+```text
+docs/t-specs/<slug>/
+├── spec.md      progress (state, base commit, active, resume notes),
+│                task table linking to each task file, rulings, then the
+│                design: goal, requirements, non-goals, decisions,
+│                contracts, edge cases, acceptance criteria, verification
+└── tasks/
+    ├── T1.md    context, copied constraints, dependencies, files,
+    └── T2.md    interfaces, ordered steps with code, named tests,
+                 acceptance, verification
+```
+
+`spec.md` says what and why; each task file says how, with code wherever
+the exact shape matters, and stands alone so a worker never needs the rest.
+The orchestrator reads `spec.md` and only the scheduling headers of task
+files, so its context does not grow with the size of the implementation
+detail. Placeholders such as `TBD` are treated as failures.
+
+`t-spec` stops in `Draft` and asks you to read the spec and task files. It
+marks the spec `Ready` only on your explicit approval. A worked
+example lives at
+[`skills/t-spec/assets/example/`](skills/t-spec/assets/example/).
 
 ### 3. Build the specification
 
 Invoke `t-build` and identify the specification to execute:
 
 ```text
-Use t-build for docs/t-specs/offline-sync/spec.md.
+Use t-build for offline-sync.
 ```
 
-`t-build` validates readiness, captures the starting Git state, executes tasks
-in dependency order, verifies each outcome, performs a final review, and keeps
-the specification's progress accurate. It creates scoped Conventional Commits
-but does not push, publish, deploy, or open a pull request unless the user
-separately authorizes that action.
+`t-build` validates readiness, captures the starting Git state, and reports
+once what the host supports (workers, parallel dispatch, model selection).
+It then dispatches a fresh implementer worker per task file, sets the
+worker's model explicitly when the host allows it, runs independent tasks
+in parallel, gates each result against the task's files and evidence,
+records progress in the spec's task table, and finishes with one
+independent review of the whole diff against the design. Sequential workers commit their own
+task; when workers run in parallel the orchestrator commits each task after
+its gate. It creates scoped Conventional Commits but does not push,
+publish, deploy, or open a pull request unless the user separately
+authorizes that action.
 
 ## Specification contract
 
-The specification is the durable interface between planning and execution. Its
-top-level progress block records:
+The specification directory is the durable interface between planning and
+execution.
 
-- the current state: `Draft`, `Ready`, `Building`, `Blocked`, or `Complete`;
-- the active task and concise resume notes;
-- the base commit captured when implementation begins; and
-- a stable checklist whose task IDs match detailed definitions later in the
-  document.
+- `spec.md` opens with `Progress` (state, base commit, active tasks,
+  resume notes), a `Tasks` table with stable IDs linked to their files,
+  dependencies, status (`pending`, `active`, `done`, `blocked`,
+  `reopened`), and commit SHAs, and `Rulings` made during the build. The
+  design sections follow. `t-spec` writes all of it; the build updates only
+  the first three sections.
+- States: `Draft` (being written or awaiting your approval), `Ready`
+  (approved; the build runs and resumes in this state), `Complete`.
+  Execution progress lives in the task table.
+- `tasks/Tn.md` is one self-contained brief per task with context, copied
+  constraints, dependencies, files, interfaces consumed and produced,
+  ordered steps, named tests, acceptance, and verification. Dependencies
+  control ordering; tasks with met dependencies and non-overlapping files
+  may run in parallel.
 
-The complete template lives at
-[`skills/t-spec/assets/spec-template.md`](skills/t-spec/assets/spec-template.md).
-`t-spec` owns the authoring contract, while `t-build` carries enough matching
-reader guidance to function when installed alone.
+Templates live in [`skills/t-spec/assets/`](skills/t-spec/assets/) with a
+filled example under `example/`. `t-spec` owns the authoring contract,
+while `t-build` carries enough matching reader guidance to function when
+installed alone.
 
 ## Architecture and boundaries
 
@@ -180,7 +226,13 @@ skills/
 ├── t-spec/
 │   ├── SKILL.md
 │   └── assets/
-│       └── spec-template.md
+│       ├── spec-template.md
+│       ├── task-template.md
+│       └── example/
+│           ├── spec.md
+│           └── tasks/
+│               ├── T1.md
+│               └── T2.md
 └── t-build/
     └── SKILL.md
 ```

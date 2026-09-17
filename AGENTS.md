@@ -9,8 +9,10 @@ specific models, or host-only tools.
 
 The three phases remain manually invoked and must not chain automatically:
 
-1. `t-brainstorm` explores and hands off decisions without implementation.
-2. `t-spec` writes or updates `docs/t-specs/<slug>/spec.md`.
+1. `t-brainstorm` explores and hands off a design without implementation; it
+   may write only `docs/t-specs/<slug>/handoff.md`.
+2. `t-spec` writes or updates `docs/t-specs/<slug>/` (`spec.md` and
+   `tasks/Tn.md`) and marks it `Ready` only on the user's approval.
 3. `t-build` executes a selected ready specification and does not publish
    without explicit authorization.
 
